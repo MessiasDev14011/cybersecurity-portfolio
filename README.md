@@ -25,9 +25,8 @@ TryHackMe Jr Penetration Tester path.
 ### TryHackMe
 - [UltraTech — Command Injection → SSH → Docker → Root](tryhackme/medium/ultratech/README.md)
 - Mr Robot — Web Exploitation → WordPress → Privilege Escalation
-- Cheese — Web Enumeration → Reverse Shell
-- Pickle Rick — Web Exploitation → Reverse Shell
-- Recruit — SSRF / SQL Injection
+-[Internal](tryhackme/hard/Internal/README.md)
+
 
 ## Projects
 
