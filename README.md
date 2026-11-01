@@ -24,8 +24,10 @@ TryHackMe Jr Penetration Tester path.
 
 ### TryHackMe
 - [UltraTech — Command Injection → SSH → Docker → Root](tryhackme/medium/ultratech/README.md)
-- Mr Robot — Web Exploitation → WordPress → Privilege Escalation
+  
 * [Internal - Web / Privilege Escalation / Pivoting / Docker](tryhackme/hard/Internal/README.md)
+* [Razor Black - Active Directory penetration testing room](https://github.com/MessiasDev14011/cybersecurity-portfolio/tree/main/tryhackme/medium/RazorBlack)
+  
 
 
 ## Projects
