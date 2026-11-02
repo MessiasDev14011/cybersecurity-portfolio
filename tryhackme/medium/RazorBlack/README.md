@@ -1,4 +1,4 @@
-[RazorBlack-writeup.md](https://github.com/user-attachments/files/34230933/RazorBlack-writeup.md)
+
 # RazorBlack — TryHackMe Writeup
 
 > Active Directory penetration testing room simulating a domain compromise against `raz0rblack.thm`.
