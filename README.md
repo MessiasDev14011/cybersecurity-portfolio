@@ -23,6 +23,7 @@ TryHackMe Jr Penetration Tester path.
 ## Practical Experience
 
 ### TryHackMe
+* [Enterprise — Active Directory penetration test against a corporate domain controller](https://github.com/MessiasDev14011/cybersecurity-portfolio/tree/main/tryhackme/hard/Enterprise/README.md)
 - [UltraTech — Command Injection → SSH → Docker → Root](tryhackme/medium/ultratech/README.md)
   
 * [Internal - Web / Privilege Escalation / Pivoting / Docker](tryhackme/hard/Internal/README.md)
