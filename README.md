@@ -8,7 +8,7 @@ Web Security, Linux, Network Security and Red Teaming.
 Network/Infrastructure professional transitioning into
 offensive cybersecurity.
 
-Currently studying Cybersecurity and completing the
+Currently studying Cybersecurity and completed the
 TryHackMe Jr Penetration Tester path.
 
 ## Focus
